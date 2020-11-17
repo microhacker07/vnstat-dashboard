@@ -3,7 +3,7 @@
 Uses [Bottle](https://bottlepy.org/docs/dev/) and [Plotly JS](https://plotly.com/javascript/) to create
 some graphs to monitor data usage from a device.
 
-![Image of Web Frontend](https://github.com/microhacker07/vnstat-dashboard/vnstat.png)
+![Image of Web Frontend](https://github.com/microhacker07/vnstat-dashboard/blob/main/vnstat.png)
 
 Displays:
 
