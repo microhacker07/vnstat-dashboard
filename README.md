@@ -34,10 +34,10 @@ For Debian/Ubuntu:
 
 `git clone https://github.com/microhacker07/vnstat-dashboard.git`
 
-1. Install Python packages
+2. Install Python packages
 
 `pip -r requirements.txt`
 
-1. Run server.py
+3. Run server.py
 
 `python server.py`
