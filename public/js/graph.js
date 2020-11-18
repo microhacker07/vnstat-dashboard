@@ -41,6 +41,7 @@ function getDates(data, time_type) {
     return arr;
 }
 
+// Uses the given parameters of the 'raw' json, timespan key, and element id name for the graph
 function makePlot(vnstat_json, timespan, element) {
     let traffic_data = vnstat_json['traffic'][timespan]
 
@@ -49,14 +50,20 @@ function makePlot(vnstat_json, timespan, element) {
     let rx = makeArray(traffic_data, 'rx');
     let tx = makeArray(traffic_data, 'tx');
 
+    let data_unit = '';
     if (timespan === 'hours') {
+        // Converts data from KiB to MiB
         rx = reduceData(rx, 1);
         tx = reduceData(tx, 1);
+        data_unit = 'MiB';
     } else {
+        // Converts data from KiB to GiB
         rx = reduceData(rx, 2);
         tx = reduceData(tx, 2);
+        data_unit = 'GiB';
     }
 
+    // Received data bars
     let traceRX = {
         x: dates,
         y: rx,
@@ -64,6 +71,7 @@ function makePlot(vnstat_json, timespan, element) {
         type: 'bar'
       };
     
+    // Transmitted data bars 
     let traceTX = {
         x: dates,
         y: tx,
@@ -74,11 +82,6 @@ function makePlot(vnstat_json, timespan, element) {
     let data = [traceRX, traceTX];
 
     let title = element.charAt(0).toUpperCase() + element.slice(1);
-
-    let data_unit = 'MiB';
-    if (timespan != 'hours') {
-        data_unit = 'GiB';
-    }
       
     let layout = {
         title: {
@@ -123,18 +126,27 @@ function makePlot(vnstat_json, timespan, element) {
     Plotly.newPlot(element, data, layout, config);
 }
 
+// Turn a date obj and time obj into a Date object
+function datetime(dateobj, timeobj) {
+    let year = dateobj['year'];
+    let month = dateobj['month'] - 1;
+    let day = dateobj['day'];
+    let hour = timeobj['hour'];
+    let minutes = timeobj['minutes'];
+    return new Date(year, month, day, hour, minutes);
+}
+
 function on_response(response) {
     let result = JSON.parse(response);
 
     let vnstat_elm = document.getElementById('vnstatversion');
     vnstat_elm.innerHTML = result['vnstatversion'];
+
     let date = result['updated']['date'];
     let time = result['updated']['time'];
     
-    if (time['minutes'] < 10) {
-        time['minutes'] = "0" + JSON.stringify(time['minutes']);
-    }
-    timestamp = new Date(date['year'], date['month'] - 1, date['day'], time['hour'], time['minutes']);
+    timestamp = datetime(date, time);
+    sinceUpdate();
     
     makePlot(result, 'hours', 'hourly');
     makePlot(result, 'days', 'daily');
@@ -161,7 +173,7 @@ function sinceUpdate() {
         last_updated_elm.innerHTML = diff + " " + text_min + " ago";
     } else {
 
-        last_updated_elm.innerHTML = diff + " seconds ago";
+        last_updated_elm.innerHTML = "just now";
     }
 
 }
@@ -172,5 +184,4 @@ function runWithInterval(func, milliseconds) {
 }
 
 runWithInterval(getData, 1 * 60 * 1000);
-runWithInterval(sinceUpdate, 1000);
 
