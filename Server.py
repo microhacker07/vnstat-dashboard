@@ -1,7 +1,5 @@
 import bottle
-import subprocess
 import json
-import time
 
 @bottle.route('/')
 def server_html():
@@ -23,6 +21,7 @@ def json_dump():
     vnstat = json.loads(vnstat)
 
     # Spot for handling/adding data to the base json
+    json_iface['err'] = []
 
     return json.dumps(vnstat)
 
@@ -45,9 +44,8 @@ def json_filtered(iface):
 
     if json_iface.get('interface', None) == None:
         json_iface['interface'] = 'err'
-        json_iface['err'] = f"Could not find interface '{iface}' only known interfaces are {interfaces}"
+        json_iface['err'] += [f"Could not find interface '{iface}' only known interfaces are {interfaces}"]
 
-    #json_iface = json_iface['interfaces'][key]
     return json.dumps(json_iface)
 
 bottle.run(host='0.0.0.0', port=8080, debug=True)
