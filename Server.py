@@ -30,12 +30,11 @@ def json_filtered(iface):
     bottle.response.content_type = 'application/json; charset=UTF8'
     json_iface = json.loads(json_dump())
 
-    all_interfaces = []
     network_name_key = statHandler.network_name_key[ json_iface['jsonversion'] ]
 
     for single_interface in json_iface['interfaces']:
         interface_name = single_interface[network_name_key]
-        all_interfaces.append(interface_name)
+
         if interface_name == iface:
             json_iface['interface'] = interface_name
             json_iface['created'] = single_interface['created']
@@ -43,10 +42,19 @@ def json_filtered(iface):
             json_iface['traffic'] = single_interface['traffic']
             
     json_iface.pop('interfaces')
-    json_iface['all_interfaces'] = all_interfaces
-
-    if json_iface.get('interface', None) == None:
-        # Possible error handling
-        pass
 
     return json.dumps(json_iface)
+
+@bottle.get('/interfaces')
+def all_interfaces():
+    bottle.response.content_type = 'application/json; charset=UTF8'
+    json_iface = json.loads(json_dump())
+
+    all_interfaces = []
+    network_name_key = statHandler.network_name_key[ json_iface['jsonversion'] ]
+
+    for single_interface in json_iface['interfaces']:
+        interface_name = single_interface[network_name_key]
+        all_interfaces.append(interface_name)
+
+    return json.dumps(all_interfaces)
