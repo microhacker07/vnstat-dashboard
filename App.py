@@ -43,7 +43,7 @@ def timeStr(timeObj):
     day    = numberStringSize(timeObj['day'], 2)
     hour   = numberStringSize(timeObj['hour'],  2)
     minute = numberStringSize(timeObj['minute'], 2)
-    timestamp = year + "-" + month + "-" + day + " " + hour + ":" + minute
+    timestamp = year + "-" + month + "-" + day + "T" + hour + ":" + minute
     return timestamp
 
 #================================================
@@ -51,15 +51,16 @@ def timeStr(timeObj):
 
 # Future function
 def histogramFormat(timespan, json_version):
-    data_points = []
+    data_points = {}
+
     for i in timespan:
         if json_version == "1":
             i['time'] = {}
             i['time']['hour'] = i['id']
         datetimeObj = getTimestamp(i)
         datetimeStr = timeStr(datetimeObj)
-        obj = {'rx':i['rx'], 'tx':i['tx'], 'datetime':datetimeStr}
-        data_points.append(obj)
+        data_points[datetimeStr] = {'rx':i['rx'], 'tx':i['tx']}
+
     return data_points
 
 # Modifies a json obj from json_filtered
