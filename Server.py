@@ -1,7 +1,6 @@
 import bottle
 import json
 import App
-import vnStatJSONhandler as statHandler
 
 @bottle.route('/')
 def server_html():
@@ -25,15 +24,21 @@ def json_dump():
 
     return json.dumps(json_iface)
 
+# Dictionary with the version with the related network name
+network_name_key = {
+    "1":"id",
+    "2":"name"
+}
+
 @bottle.get('/json/<iface>')
 def json_filtered(iface):
     bottle.response.content_type = 'application/json; charset=UTF8'
     json_iface = json.loads(json_dump())
 
-    network_name_key = statHandler.network_name_key[ json_iface['jsonversion'] ]
+    network_name = network_name_key[ json_iface['jsonversion'] ]
 
     for single_interface in json_iface['interfaces']:
-        interface_name = single_interface[network_name_key]
+        interface_name = single_interface[network_name]
 
         if interface_name == iface:
             json_iface['interface'] = interface_name
@@ -51,10 +56,19 @@ def all_interfaces():
     json_iface = json.loads(json_dump())
 
     all_interfaces = []
-    network_name_key = statHandler.network_name_key[ json_iface['jsonversion'] ]
+    network_name = network_name_key[ json_iface['jsonversion'] ]
 
     for single_interface in json_iface['interfaces']:
-        interface_name = single_interface[network_name_key]
+        interface_name = single_interface[network_name]
         all_interfaces.append(interface_name)
 
     return json.dumps(all_interfaces)
+
+@bottle.get('/plotly_graph/<interface>')
+def plotly_data(interface):
+    bottle.response.content_type = 'application/json; charset=UTF8'
+    json_blob = json.loads(json_filtered(interface))
+
+    App.vnstat_graph(json_blob)
+
+    return json.dumps(json_blob)
