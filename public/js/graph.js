@@ -3,16 +3,16 @@
 // Global Variables
 let timestamp = new Date();
 
-
-function reduceData(data, x) {
+function reduceData(data, power, humanReadable = false) {
+    let reduction = 1000 + 24 * !humanReadable;
     let acc = 0;
-    while (acc < x) {
+    while (acc < power) {
         for (let i in data) {
-            data[i] = data[i] / 1024;
+            data[i] = data[i] / reduction;
         }
         acc += 1;
     }
-    return data
+    return data;
 }
 
 function makeArray(data, key) {
@@ -23,30 +23,37 @@ function makeArray(data, key) {
     return arr;
 }
 
-function getDates(data, time_type) {
-    let arr = [];
-    let acc = 0;
-    for (let d of data) {
-        let d_short = d['date'];
-        let str = d_short['year'] + "-" + d_short['month'];
-        if (time_type != 'months') {
-            str += "-" + d_short['day'];
-            if (time_type == 'hours') {
-                str += " " + acc;
+function layout(title, data_unit) {
+    return {
+        title: {
+            text: title + ' data usage',
+            font: {
+                family: 'Courier New, monospace',
+                size: 24
+            },
+            xref: 'paper'
+        },
+
+        yaxis: {
+            title: {
+                text: 'Data Usage (' + data_unit + ')',
+                font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                }
             }
-        }
-        arr.push(str);
-        acc += 1;
-    }
-    return arr;
+        },
+        
+        barmode: 'stack'
+    };
 }
 
 // Uses the given parameters of the 'raw' json, timespan key, and element id name for the graph
-function makePlot(vnstat_json, timespan, element) {
-    let traffic_data = vnstat_json['traffic'][timespan]
+function makePlot(graph_data, timespan, element) {
+    let traffic_data = graph_data[timespan]
 
-    let dates = getDates(traffic_data, timespan);
-
+    let dates = makeArray(traffic_data, 'datetime')
     let rx = makeArray(traffic_data, 'rx');
     let tx = makeArray(traffic_data, 'tx');
 
@@ -82,58 +89,14 @@ function makePlot(vnstat_json, timespan, element) {
     let data = [traceRX, traceTX];
 
     let title = element.charAt(0).toUpperCase() + element.slice(1);
-      
-    let layout = {
-        title: {
-            text: title + ' data usage',
-            font: {
-                family: 'Courier New, monospace',
-                size: 24
-            },
-            xref: 'paper'
-        },
-
-        xaxis: {
-            title: {
-                text: 'Time',
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
-            },
-        },
-
-        yaxis: {
-            title: {
-                text: 'Data Usage (' + data_unit + ')',
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
-            }
-        },
-        
-        barmode: 'group'
-    };
+    title = title.replace('s ', 'ly ');
 
     let config = {
         displaylogo: false,
         responsive: true,
     };
       
-    Plotly.newPlot(element, data, layout, config);
-}
-
-// Turn a date obj and time obj into a Date object
-function datetime(dateobj, timeobj) {
-    let year = dateobj['year'];
-    let month = dateobj['month'] - 1;
-    let day = dateobj['day'];
-    let hour = timeobj['hour'];
-    let minutes = timeobj['minutes'];
-    return new Date(year, month, day, hour, minutes);
+    Plotly.newPlot(element, data, layout(title, data_unit), config);
 }
 
 function on_response(response) {
@@ -144,17 +107,29 @@ function on_response(response) {
 
     let date = result['updated']['date'];
     let time = result['updated']['time'];
+
+    let minuteStr = 'minute'
+    if (result['jsonversion'] == "1") {
+        minuteStr += 's';
+    }
     
-    timestamp = datetime(date, time);
+    timestamp = new Date(date.year, date.month-1, date.day, time.hour, time[minuteStr]);
     sinceUpdate();
-    
-    makePlot(result, 'hours', 'hourly');
-    makePlot(result, 'days', 'daily');
-    makePlot(result, 'months', 'monthly');
+
+    let timespan_data = [];
+    for (let i in result['graph_data']) {
+        timespan_data.push(i);
+    }
+
+    generateDivList('plots', timespan_data);
+
+    for (let t of timespan_data) {
+        makePlot(result['graph_data'], t, t);
+    }
 }
 
 function getData() {
-    ajaxGetRequest("/json/eth0", on_response);
+    ajaxGetRequest("/plotly_graph/eth0", on_response);
 }
 
 function sinceUpdate() {

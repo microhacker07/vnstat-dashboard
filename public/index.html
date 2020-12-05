@@ -6,20 +6,20 @@
     <title>Vnstat</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="js/ajax.js"></script>
+    <script src="js/htmlHelper.js"></script>
 </head>
 <body>
-    <p>VnStat Version:
+    <p>
+        VnStat Version:
         <span id="vnstatversion"></span>
     </p>
-    <p>Last updated 
+    <p>
+        Last updated 
         <span id='last_updated'></span>
     </p>
-    <div class="plots">
-        <div id="hourly"></div>
-        <div id="daily"></div>
-        <div id="monthly"></div>
-    </div>
     
+    <div id="plots"></div>
+
     <script src="js/graph.js"></script>
 </body>
 </html> 

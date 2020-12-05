@@ -6,13 +6,8 @@ def vnStatGetJSON():
     json_blob = result.stdout.decode('utf-8')
     return json_blob
 
-"""
-Below is currently not being used
- |                             |
- V                             V
-"""
-
 #================================================
+# time handling stuff
 #================================================
 
 def numberStringSize(integer, minsize, align_right=True):
@@ -43,15 +38,16 @@ def timeStr(timeObj):
     day    = numberStringSize(timeObj['day'], 2)
     hour   = numberStringSize(timeObj['hour'],  2)
     minute = numberStringSize(timeObj['minute'], 2)
-    timestamp = year + "-" + month + "-" + day + "T" + hour + ":" + minute
+    timestamp = year + "-" + month + "-" + day + " " + hour + ":" + minute
     return timestamp
 
 #================================================
+# graph handling functions
 #================================================
 
 # Future function
 def histogramFormat(timespan, json_version):
-    data_points = {}
+    data_points = []
 
     for i in timespan:
         if json_version == "1":
@@ -59,7 +55,7 @@ def histogramFormat(timespan, json_version):
             i['time']['hour'] = i['id']
         datetimeObj = getTimestamp(i)
         datetimeStr = timeStr(datetimeObj)
-        data_points[datetimeStr] = {'rx':i['rx'], 'tx':i['tx']}
+        data_points.append({'rx':i['rx'], 'tx':i['tx'], 'datetime':datetimeStr})
 
     return data_points
 
