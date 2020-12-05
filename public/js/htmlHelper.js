@@ -9,11 +9,11 @@ function generateDivList(elementID, lst) {
     }
 }
 
-function generateInterfaceButtons(elementID, lst) {
+function generateButtons(elementID, func, lst) {
     let button_elm = document.getElementById(elementID);
     if (button_elm.innerHTML == "") {
         for (let i of lst) {
-            button_elm.innerHTML += "<button onclick='setWatchInterface("+ i +")'>"+ i +"</button>"
+            button_elm.innerHTML += "<button onclick='"+ func.name +"(\""+ i +"\");'>"+ i +"</button>"
         }   
     }
 }

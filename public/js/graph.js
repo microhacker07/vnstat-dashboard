@@ -2,6 +2,7 @@
 
 // Global Variables
 let timestamp = new Date();
+let selected_device = "";
 
 function reduceData(data, power, humanReadable = false) {
     let reduction = 1000 + 24 * !humanReadable;
@@ -27,21 +28,11 @@ function layout(title, data_unit) {
     return {
         title: {
             text: title + ' data usage',
-            font: {
-                family: 'Courier New, monospace',
-                size: 24
-            },
-            xref: 'paper'
         },
 
         yaxis: {
             title: {
-                text: 'Data Usage (' + data_unit + ')',
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
+                text: 'Data Usage (' + data_unit + ')'
             }
         },
         
@@ -89,7 +80,7 @@ function makePlot(graph_data, timespan, element) {
     let data = [traceRX, traceTX];
 
     let title = element.charAt(0).toUpperCase() + element.slice(1);
-    title = title.replace('s ', 'ly ');
+    title = title.replace('s', 'ly');
 
     let config = {
         displaylogo: false,
@@ -128,8 +119,11 @@ function on_response(response) {
     }
 }
 
+
 function getData() {
-    ajaxGetRequest("/plotly_graph/eth0", on_response);
+    if (selected_device != "") {
+        ajaxGetRequest("/plotly_graph/" + selected_device, on_response);
+    }
 }
 
 function sinceUpdate() {
@@ -138,7 +132,7 @@ function sinceUpdate() {
     let diff = Date.now() - timestamp;
     // Now in seconds
     diff = Math.round(diff / 1000);
-
+    
     if (diff >= 60) {
         diff = Math.round(diff / 60);
         let text_min = "minutes";
@@ -147,10 +141,10 @@ function sinceUpdate() {
         }
         last_updated_elm.innerHTML = diff + " " + text_min + " ago";
     } else {
-
+        
         last_updated_elm.innerHTML = "just now";
     }
-
+    
 }
 
 function runWithInterval(func, milliseconds) {
@@ -158,5 +152,16 @@ function runWithInterval(func, milliseconds) {
     setInterval(func, milliseconds);
 }
 
-runWithInterval(getData, 1 * 60 * 1000);
+function setDevice(deviceStr) {
+    selected_device = deviceStr;
+    ajaxGetRequest("/plotly_graph/" + selected_device, on_response);
+}
 
+function getDevices(response) {
+    let result = JSON.parse(response);
+    generateButtons("devices_buttons", setDevice, result)
+}
+
+ajaxGetRequest("/interfaces", getDevices);
+
+runWithInterval(getData, 1 * 60 * 1000);
