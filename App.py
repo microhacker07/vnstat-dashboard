@@ -46,11 +46,11 @@ def timeStr(timeObj):
 #================================================
 
 # Future function
-def histogramFormat(timespan, json_version):
+def histogramFormat(timespan, data, json_version):
     data_points = []
 
-    for i in timespan:
-        if json_version == "1":
+    for i in data:
+        if json_version == "1" and timespan == "hours":
             i['time'] = {}
             i['time']['hour'] = i['id']
         datetimeObj = getTimestamp(i)
@@ -63,8 +63,7 @@ def histogramFormat(timespan, json_version):
 def vnstat_graph(obj):
     obj['simple_data'] = {}
 
-    # ignore certain data types
-    # top is named tops in json v1
+    # ignore certain types of data
     ignore_traffic = ['total']
     traffic = obj['traffic']
     histograms = {}
@@ -72,7 +71,7 @@ def vnstat_graph(obj):
     for t in traffic:
         data = traffic[t]
         if not t in ignore_traffic:
-            histograms[t] = histogramFormat(data, obj['jsonversion'])
+            histograms[t] = histogramFormat(t, data, obj['jsonversion'])
         else:
             obj['simple_data'][t] = data
 

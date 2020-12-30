@@ -6,12 +6,16 @@ import App
 def server_html():
     return bottle.static_file('index.html', root='./public/')
 
+@bottle.get('/favicon.ico')
+def serve_favicon():
+    return bottle.static_file('favicon.ico', root='./public/icon/')
+
 @bottle.route('/js/<file>')
-def server_js(file):
+def serve_js(file):
     return bottle.static_file(file, root='./public/js')
 
 @bottle.route('/css/<file>')
-def server_css(file):
+def serve_css(file):
     return bottle.static_file(file, root='./public/css')
 
 @bottle.get('/json')
