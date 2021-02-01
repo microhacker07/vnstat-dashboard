@@ -80,7 +80,6 @@ function makePlot(graph_data, timespan, element) {
     let data = [traceRX, traceTX];
 
     let title = element.charAt(0).toUpperCase() + element.slice(1);
-    title = title.replace('s', 'ly');
 
     let config = {
         displaylogo: false,
