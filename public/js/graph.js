@@ -15,6 +15,8 @@ function reduceData(data, power, humanReadable = false) {
     while (acc < power) {
         for (let i in data) {
             data[i] = data[i] / reduction;
+            data[i] = Math.round(data[i] * 100);
+            data[i] = data[i] / 100;
         }
         acc += 1;
     }
@@ -54,15 +56,15 @@ function makePlot(graph_data, timespan, element) {
     let tx = makeArray(traffic_data, 'tx');
 
     let data_unit = '';
-    if (timespan === 'hours') {
+    if (timespan === 'hour' || timespan === 'fiveminute') {
         // Converts data from KiB to MiB
-        rx = reduceData(rx, 1);
-        tx = reduceData(tx, 1);
+        rx = reduceData(rx, 2);
+        tx = reduceData(tx, 2);
         data_unit = 'MiB';
     } else {
         // Converts data from KiB to GiB
-        rx = reduceData(rx, 2);
-        tx = reduceData(tx, 2);
+        rx = reduceData(rx, 3);
+        tx = reduceData(tx, 3);
         data_unit = 'GiB';
     }
 
