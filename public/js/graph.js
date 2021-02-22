@@ -2,7 +2,12 @@
 
 // Global Variables
 let timestamp = new Date();
-let selected_device = "";
+let selected_device = getLastSelectedDevice();
+
+function getLastSelectedDevice() {
+    let cookie = getCookie("device");
+    return cookie;
+}
 
 function reduceData(data, power, humanReadable = false) {
     let reduction = 1000 + 24 * !humanReadable;
@@ -153,6 +158,7 @@ function runWithInterval(func, milliseconds) {
 
 function setDevice(deviceStr) {
     selected_device = deviceStr;
+    setCookie("device", selected_device, 355)
     ajaxGetRequest("/plotly_graph/" + selected_device, on_response);
 }
 

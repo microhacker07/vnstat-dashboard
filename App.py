@@ -63,8 +63,8 @@ def histogramFormat(timespan, data, json_version):
 def vnstat_graph(obj):
     obj['simple_data'] = {}
 
-    # ignore certain types of data
-    ignore_traffic = ['total']
+    # ignore certain types of 'simple' data
+    ignore_traffic = ['total', 'tops', 'top']
     traffic = obj['traffic']
     histograms = {}
 
