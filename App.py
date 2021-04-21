@@ -45,7 +45,7 @@ def timeStr(timeObj):
 # graph handling functions
 #================================================
 
-# Future function
+# Puts the rx,tx,date in an object
 def histogramFormat(timespan, data, json_version):
     data_points = []
 
@@ -63,8 +63,8 @@ def histogramFormat(timespan, data, json_version):
 def vnstat_graph(obj):
     obj['simple_data'] = {}
 
-    # ignore certain types of data
-    ignore_traffic = ['total']
+    # ignore certain types of 'simple' data
+    ignore_traffic = ['total', 'tops', 'top']
     traffic = obj['traffic']
     histograms = {}
 
@@ -74,7 +74,6 @@ def vnstat_graph(obj):
             histograms[t] = histogramFormat(t, data, obj['jsonversion'])
         else:
             obj['simple_data'][t] = data
-
 
     obj.pop('traffic')
     obj['graph_data'] = histograms
