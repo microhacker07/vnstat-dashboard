@@ -9,18 +9,16 @@ function getLastSelectedDevice() {
     return cookie;
 }
 
-function reduceData(data, power, humanReadable = false) {
-    let reduction = 1000 + 24 * !humanReadable;
-    let acc = 0;
-    while (acc < power) {
-        for (let i in data) {
-            data[i] = data[i] / reduction;
-            data[i] = Math.round(data[i] * 100);
-            data[i] = data[i] / 100;
-        }
-        acc += 1;
-    }
-    return data;
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 function makeArray(data, key) {
@@ -31,15 +29,26 @@ function makeArray(data, key) {
     return arr;
 }
 
-function layout(title, data_unit) {
+function trace(name, dates, data, text) {
+    return {
+        name: name,
+        type: 'bar',
+        x: dates,
+        y: data,
+        text: text,
+        hoverinfo: "x+text+name"
+    };
+}
+
+function layout(title) {
     return {
         title: {
-            text: title + ' data usage',
+            text: title + ' Data Usage',
         },
 
         yaxis: {
             title: {
-                text: 'Data Usage (' + data_unit + ')'
+                text: 'Data Usage (Bytes)'
             }
         },
         
@@ -47,59 +56,38 @@ function layout(title, data_unit) {
     };
 }
 
+const titleFromTimespan = {
+    fiveminute: "Five minutes",
+    hour: 'Hourly',
+    day: 'Daily',
+    month: 'Monthly',
+    year: 'Yearly'
+}
+
+const config = {
+    displaylogo: false,
+    responsive: true,
+};
+
 // Uses the given parameters of the 'raw' json, timespan key, and element id name for the graph
 function makePlot(graph_data, timespan, element) {
     let traffic_data = graph_data[timespan]
 
-    let dates = makeArray(traffic_data, 'datetime')
-    let rx = makeArray(traffic_data, 'rx');
-    let tx = makeArray(traffic_data, 'tx');
-
-    let data_unit = '';
-    if (timespan === 'hour' || timespan === 'fiveminute') {
-        // Converts data from KiB to MiB
-        rx = reduceData(rx, 2);
-        tx = reduceData(tx, 2);
-        data_unit = 'MiB';
-    } else {
-        // Converts data from KiB to GiB
-        rx = reduceData(rx, 3);
-        tx = reduceData(tx, 3);
-        data_unit = 'GiB';
-    }
-
-    // Received data bars
-    let traceRX = {
-        x: dates,
-        y: rx,
-        name: 'rx',
-        type: 'bar'
-      };
-    
-    // Transmitted data bars 
-    let traceTX = {
-        x: dates,
-        y: tx,
-        name: 'tx',
-        type: 'bar'
-    };
+    const dates = makeArray(traffic_data, 'datetime')
+    const rx = makeArray(traffic_data, 'rx');
+    const tx = makeArray(traffic_data, 'tx');
+    const rxText = rx.map(x => formatBytes(x));
+    const txText = tx.map(x => formatBytes(x))
       
-    let data = [traceRX, traceTX];
-
-    let title = element.charAt(0).toUpperCase() + element.slice(1);
-
-    let config = {
-        displaylogo: false,
-        responsive: true,
-    };
+    const data = [trace('rx', dates, rx, rxText), trace('tx', dates, tx, txText)];
       
-    Plotly.newPlot(element, data, layout(title, data_unit), config);
+    Plotly.newPlot(element, data, layout(titleFromTimespan[timespan]), config);
 }
 
 function on_response(response) {
-    let result = JSON.parse(response);
+    const result = JSON.parse(response);
 
-    let vnstat_elm = document.getElementById('vnstatversion');
+    const vnstat_elm = document.getElementById('vnstatversion');
     vnstat_elm.innerHTML = result['vnstatversion'];
 
     let date = result['updated']['date'];
