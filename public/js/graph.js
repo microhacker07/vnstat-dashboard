@@ -4,9 +4,24 @@
 let timestamp = new Date();
 let selected_device = getLastSelectedDevice();
 
+
+// Cookie / Local storage stuff
 function getLastSelectedDevice() {
-    let cookie = getCookie("device");
-    return cookie;
+    if (typeof(Storage) !== "undefined") {
+        return localStorage.getItem("lastDevice");
+    } else {
+        return getCookie("lastDevice");
+    }
+}
+
+function setDevice(deviceStr) {
+    selected_device = deviceStr;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("lastDevice", selected_device);
+    } else {
+        setCookie("lastDevice", selected_device, 7)
+    }
+    ajaxGetRequest("/plotly_graph/" + selected_device, on_response);
 }
 
 function formatBytes(bytes, decimals = 2) {
@@ -144,12 +159,6 @@ function sinceUpdate() {
 function runWithInterval(func, milliseconds) {
     func();
     setInterval(func, milliseconds);
-}
-
-function setDevice(deviceStr) {
-    selected_device = deviceStr;
-    setCookie("device", selected_device, 355)
-    ajaxGetRequest("/plotly_graph/" + selected_device, on_response);
 }
 
 function getDevices(response) {
