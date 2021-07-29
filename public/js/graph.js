@@ -24,10 +24,21 @@ function setDevice(deviceStr) {
     ajaxGetRequest("/plotly_graph/" + selected_device, on_response);
 }
 
-function formatBytes(bytes, decimals = 2) {
+function scaleGraph(rx_arr, tx_arr) {
+    const max_bytes = Math.max(...rx_arr, ...tx_arr);
+    if (max_bytes === 0) return 0;
+
+    const k = 1000;
+    const i = Math.floor(Math.log(max_bytes) / Math.log(k));
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    
+    return [ rx_arr.map(x => (x / Math.pow(k, i))) , tx_arr.map(x => (x / Math.pow(k, i))) , sizes[i] ];
+}
+
+function formatBytes(bytes, decimals=2, ) {
     if (bytes === 0) return '0 Bytes';
 
-    const k = 1024;
+    const k = 1000;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
@@ -55,7 +66,7 @@ function trace(name, dates, data, text) {
     };
 }
 
-function layout(title) {
+function layout(title, size) {
     return {
         title: {
             text: title + ' Data Usage',
@@ -63,7 +74,7 @@ function layout(title) {
 
         yaxis: {
             title: {
-                text: 'Data Usage (Bytes)'
+                text: 'Data Usage (' + size + ')'
             }
         },
         
@@ -92,11 +103,13 @@ function makePlot(graph_data, timespan, element) {
     const rx = makeArray(traffic_data, 'rx');
     const tx = makeArray(traffic_data, 'tx');
     const rxText = rx.map(x => formatBytes(x));
-    const txText = tx.map(x => formatBytes(x))
+    const txText = tx.map(x => formatBytes(x));
+
+    const [rxScaled, txScaled, size] = scaleGraph(rx, tx);
       
-    const data = [trace('rx', dates, rx, rxText), trace('tx', dates, tx, txText)];
+    const data = [trace('rx', dates, rxScaled, rxText), trace('tx', dates, txScaled, txText)];
       
-    Plotly.newPlot(element, data, layout(titleFromTimespan[timespan]), config);
+    Plotly.newPlot(element, data, layout(titleFromTimespan[timespan], size), config);
 }
 
 function on_response(response) {
